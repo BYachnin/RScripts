@@ -4,7 +4,7 @@ closeAllConnections()
 rm(list = ls())
 library(xlsx)
 source("~/Google Drive/Scripts/R/mm_functions.R")
-source("~/Google Drive/scripts/R/io.R")
+source("~/Google Drive/scripts/R/tecan_io.R")
 
 #Load the contents of the various sheets into variables and transpose.
 mtx <-
