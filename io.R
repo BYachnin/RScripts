@@ -17,3 +17,12 @@ read_spectramax <- function(excelfile, excelsheet) {
     (read.xlsx((excelfile), sheetName = excelsheet))
   return(spectramaxdata)
 }
+
+#Function to load a Rosetta score file into a variable.
+#Remove the header row and the "SCORE:" leader string, and set the row names to description.
+read_rosetta_score <- function(scorefile) {
+  rosettadata <-
+    (read.table(scorefile, header = TRUE, skip = 1, row.names = "description"))
+  rosettadata <- rosettadata[,-1]
+  return(rosettadata)
+}
