@@ -1,7 +1,7 @@
 #Some scripts to deal with output from Rosetta.
 
 #Load in functions to read files from disk.
-source("~/Google Drive/scripts/R/io.R")
+source("https://raw.githubusercontent.com/BYachnin/RScripts/master/io.R")
 
 #Plot a graph of two score terms from a score file.
 #If the axes are not given, assume they are total_score vs. rmsd.
