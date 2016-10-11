@@ -2,10 +2,9 @@
 ** R
 ** preparing package for lazy loading
 Warning: package 'plotrix' was built under R version 3.2.5
-Warning in file(filename, "r", encoding = encoding) :
-  cannot open file 'E:/Users/Brahm/Documents/Google Drive/scripts/R/tecan_io.R': No such file or directory
-Error in file(filename, "r", encoding = encoding) : 
-  cannot open the connection
-Error : unable to load R code in package 'brahm'
-ERROR: lazy loading failed for package 'brahm'
-* removing 'E:/Users/Brahm/Documents/Google Drive/scripts/R/brahm.Rcheck/brahm'
+** help
+No man pages found in package  'brahm' 
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded
+* DONE (brahm)
