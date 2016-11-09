@@ -6,30 +6,26 @@ library(xlsx)
 library(brahm)
 source("mm_functions.R")
 
-wt_data <- read.xlsx(file = "In Velocities_9_2_16_NH.xlsx", sheetName = "Iso", startRow = 2, endRow = 18)
+wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test2")
 
-#datalist <- wt_data$Iso.Conc.
-#result_list <- data.frame()
-result_list <- data.frame(wt_data$Iso.Conc., wt_data$Vis.Abs.U)
-mm_nls(result_list$wt_data.Iso.Conc., result_list$wt_data.Vis.Abs.U)
+result_list <- data.frame()
 
-#for (dataset in datalist) {
-  #reg_results <- regression_loop(mtx, "Time [s]", dataset)
-  #if (is.numeric(dataset)) {
-    #new_result <- data.frame(as.numeric(dataset), reg_results[[1]])
-  #} else {
-    #new_result <- data.frame(dataset, reg_results[[1]])
-  #}
-  #result_list <- rbind(result_list, new_result)
-#}
+for (dataset in colnames(wt_data[-1])) {
+  reg_results <- regression_loop(wt_data, colnames(wt_data[1]), dataset)
+  if (is.numeric(dataset)) {
+    new_result <- data.frame(as.numeric(dataset), reg_results[[1]])
+  } else {
+    new_result <- data.frame(dataset, reg_results[[1]])
+  }
+  result_list <- rbind(result_list, new_result)
+}
 
-#names(result_list) <- c("Dataset", "Rate")
+names(result_list) <- c("Dataset", "Rate")
+
+#Hard code in the result_list dataset names to force it to be numeric for testing.
+result_list$Dataset <- c(10, 20, 40)
 
 #Check if the data frame is numeric to do non-linear regression
-#if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
-  #plot(result_list$Dataset, result_list$Rate)
-  #conc = result_list$Dataset
-  #rates = result_list$Rate
-  #mmfit = nls(rates ~ vmax * conc/(km + conc), start = list(vmax = max(rates), km = mean(conc)), control = c(maxiter = 5000))
-  #summary(mmfit)
-#}
+if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
+  mm_fit <- mm_nls(result_list$Dataset, result_list$Rate)
+}
