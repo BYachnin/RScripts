@@ -83,12 +83,14 @@ make_reggraph <- function(fulldata, lowx, highx) {
 }
 
 #Pass a data matrix and two columns to this function.
+#Optionally, include a time minimum and maximum that sets the regression limits on the first round.
+#(If those arguments are not set, first round of regression will cover the entire dataset.)
 #First, the data will be plotted with a regression line covering the whole dataset.
 #The user will then be prompted to enter alternate limits for the dataset.  The data will be re-plotted.
 #This will continue until the user hits enter for both data limits.
 #At this point, the function will return the selected data limits and the regression object.
 regression_loop <-
-  function(kineticdata, timeheader, activityheader) {
+  function(kineticdata, timeheader, activityheader, startreg = min(as.numeric(kineticdata[, timeheader])), endreg = max(as.numeric(kineticdata[, timeheader]))) {
     #Going in, we will go through the loop.
     loop = TRUE
     
@@ -96,10 +98,6 @@ regression_loop <-
     regdata = data.frame(as.numeric(kineticdata[, timeheader]), as.numeric(kineticdata[, activityheader]))
     #Call those columns x and y
     colnames(regdata) <- c('x', 'y')
-    
-    #Set up the initial start and end points of the regression to be the min and max.
-    startreg <- min(as.numeric(kineticdata[, timeheader]))
-    endreg <- max(as.numeric(kineticdata[, timeheader]))
     
     #Calculate the regression and plot the data.  Store the regression in cur_result
     cur_result <-
