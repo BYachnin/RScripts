@@ -7,6 +7,8 @@ library(brahm)
 library(utils)
 source("mm_functions.R")
 
+outfile <- "mm_out.csv"
+
 wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test2")
 
 result_list <- data.frame()
@@ -46,3 +48,6 @@ if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
     result_list[setnumber,] <- data.frame(result_list[setnumber, 1], reg_results[[1]], reg_results[[3]], reg_results[[4]])
   }
 }
+
+#Output the result_list to outfile.
+write.csv(result_list, file = outfile, row.names = FALSE)
