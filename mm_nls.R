@@ -11,6 +11,18 @@ outfile <- "mm_out.csv"
 
 wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test2")
 
+#Set up a list of the dataset concentrations.
+subconcentrations <- colnames(wt_data[-1])
+#Go through and remove the leading X and trailing .1 that R puts in.
+for (concidx in seq_len(length(subconcentrations))) {
+  if (substring(subconcentrations[concidx], 1, 1) == 'X') {
+    subconcentrations[concidx] <- substring(subconcentrations[concidx], 2)
+    if (grep('.', subconcentrations[concidx], value = FALSE)) {
+      subconcentrations[concidx] <- sub('\\..$', '', subconcentrations[concidx])
+    }
+  }
+}
+
 result_list <- data.frame()
 
 for (dataset in colnames(wt_data[-1])) {
@@ -25,8 +37,8 @@ for (dataset in colnames(wt_data[-1])) {
 
 names(result_list) <- c("Dataset", "Rate", "Min Time", "Max Time")
 
-#Hard code in the result_list dataset names to force it to be numeric for testing.
-result_list$Dataset <- c(10, 20, 40)
+#Move the numeric version of the dataset names (subconcentrations) into result_list$Dataset.
+result_list$Dataset <- as.numeric(subconcentrations)
 
 #Check if the data frame is numeric to do non-linear regression
 if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
