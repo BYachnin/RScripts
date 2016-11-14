@@ -5,14 +5,17 @@ rm(list = ls())
 library(xlsx)
 library(brahm)
 library(utils)
+#library(tools)
 source("mm_functions.R")
 
+infile <- "mm_out.csv"
 outfile <- "mm_out.csv"
 
 wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test2")
 
 #Set up a list of the dataset concentrations.
 subconcentrations <- colnames(wt_data[-1])
+
 #Go through and remove the leading X and trailing .1 that R puts in.
 for (concidx in seq_len(length(subconcentrations))) {
   if (substring(subconcentrations[concidx], 1, 1) == 'X') {
@@ -25,14 +28,24 @@ for (concidx in seq_len(length(subconcentrations))) {
 
 result_list <- data.frame()
 
-for (dataset in colnames(wt_data[-1])) {
-  reg_results <- regression_loop(wt_data, colnames(wt_data[1]), dataset)
-  if (is.numeric(dataset)) {
-    new_result <- data.frame(as.numeric(dataset), reg_results[[1]])
-  } else {
-    new_result <- data.frame(dataset, reg_results[[1]], reg_results[[3]], reg_results[[4]])
-  }
-  result_list <- rbind(result_list, new_result)
+#If infile is not given, run through all datasets first.  Otherwise, skip this and load the input data.
+if (infile == "") {
+  for (dataset in colnames(wt_data[-1])) {
+    reg_results <- regression_loop(wt_data, colnames(wt_data[1]), dataset)
+    if (is.numeric(dataset)) {
+      new_result <- data.frame(as.numeric(dataset), reg_results[[1]])
+    } else {
+      new_result <- data.frame(dataset, reg_results[[1]], reg_results[[3]], reg_results[[4]])
+    }
+    result_list <- rbind(result_list, new_result)
+  } 
+} else {
+  #Read in the old result_list from the input file
+  result_list <- read.csv(infile)
+  #Ensure that the headings in result_list and those derived from the raw data match up.
+  #Otherwise, the data are probably incompatible and we should quit.
+  if (! identical(as.numeric(result_list$Dataset), as.numeric(subconcentrations)))
+    stop("The raw data file and the results file are incompatible.")
 }
 
 names(result_list) <- c("Dataset", "Rate", "Min Time", "Max Time")
