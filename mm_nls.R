@@ -5,10 +5,9 @@ rm(list = ls())
 library(xlsx)
 library(brahm)
 library(utils)
-#library(tools)
 source("mm_functions.R")
 
-infile <- "mm_out.csv"
+infile <- ""
 outfile <- "mm_out.csv"
 
 wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test2")
@@ -33,9 +32,9 @@ if (infile == "") {
   for (dataset in colnames(wt_data[-1])) {
     reg_results <- regression_loop(wt_data, colnames(wt_data[1]), dataset)
     if (is.numeric(dataset)) {
-      new_result <- data.frame(as.numeric(dataset), reg_results[[1]])
+      new_result <- data.frame(as.numeric(dataset), reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
     } else {
-      new_result <- data.frame(dataset, reg_results[[1]], reg_results[[3]], reg_results[[4]])
+      new_result <- data.frame(dataset, reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
     }
     result_list <- rbind(result_list, new_result)
   } 
@@ -48,7 +47,7 @@ if (infile == "") {
     stop("The raw data file and the results file are incompatible.")
 }
 
-names(result_list) <- c("Dataset", "Rate", "Min Time", "Max Time")
+names(result_list) <- c("Dataset", "Rate", "Min Time", "Max Time", "Exclude?")
 
 #Move the numeric version of the dataset names (subconcentrations) into result_list$Dataset.
 result_list$Dataset <- as.numeric(subconcentrations)
@@ -70,7 +69,7 @@ if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
     #Re-do linear regression.
     reg_results <- regression_loop(wt_data, colnames(wt_data[1]), colnames(wt_data[1+setnumber]))
     #Replace the values in result_list.
-    result_list[setnumber,] <- data.frame(result_list[setnumber, 1], reg_results[[1]], reg_results[[3]], reg_results[[4]])
+    result_list[setnumber,] <- data.frame(result_list[setnumber, 1], reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
   }
 }
 
