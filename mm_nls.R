@@ -57,7 +57,7 @@ if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
   #Perform the non-linear regression, and then allow the user to re-process.
   while (TRUE) {
     #Do the non-linear regression.
-    mm_fit <- mm_nls(result_list$Dataset, result_list$Rate)
+    mm_fit <- mm_nls(result_list$Dataset, result_list$Rate, result_list$`Exclude?`)
     print(result_list)
     summary(mm_fit)
     #Provide a menu with all of the datasets.  Re-run the linear regression for those.
@@ -81,7 +81,7 @@ if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
       #Re-do linear regression.
       reg_results <- regression_loop(wt_data, colnames(wt_data[1]), colnames(wt_data[1+setnumber]), result_list[setnumber,3], result_list[setnumber,4])
       #Replace the values in result_list.
-      result_list[setnumber,] <- data.frame(result_list[setnumber, 1], reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
+      result_list[setnumber,] <- data.frame(result_list[setnumber, 1], reg_results[[1]], reg_results[[3]], reg_results[[4]], result_list[setnumber, 5])
     }
   }
 }

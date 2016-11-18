@@ -164,16 +164,22 @@ regression_loop <-
 #Michaelis-Menten equation.  It will print the regression table, and 
 #make a graph of the results.
 
-mm_nls <- function(concentration, rates) {
+mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
+  #Combine the data into a dataframe called raw_data
+  raw_data <- data.frame(concentration, rates, exclude)
+  colnames(raw_data) <- c("concentration", "rates", "exclude")
+  #Subset into excl_data and incl_data
+  incl_data <- subset(raw_data, exclude == FALSE)
+  excl_data <- subset(raw_data, exclude == TRUE)
   #Plot the raw data
-  plot(concentration, rates, main = "Michaelis-Menten Kinetics", xlab = "[Substrate]", ylab = "Initial Rate")
+  plot(incl_data$concentration, incl_data$rates, main = "Michaelis-Menten Kinetics", xlab = "[Substrate]", ylab = "Initial Rate")
   #Do the non-linear regression and store it in mmfit.
   #The starting value for vmax is set to the highest rate in the set.
   #The starting value for km is set to average concentraton in the dataset.
   #A maximum of 5000 iterations are allowed.
-  mmfit = nls(rates ~ vmax * concentration/(km + concentration), start = list(vmax = max(rates), km = mean(concentration)), control = c(maxiter = 5000))
+  mmfit = nls(incl_data$rates ~ vmax * incl_data$concentration/(km + incl_data$concentration), start = list(vmax = max(incl_data$rates), km = mean(incl_data$concentration)), control = c(maxiter = 5000))
   #Add the fitted curve to the plot.
-  lines(concentration, predict(mmfit), col = 'Red')
+  lines(incl_data$concentration, predict(mmfit), col = 'Red')
   #Print out the regression data.
   summary(mmfit)
 }
