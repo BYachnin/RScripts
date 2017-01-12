@@ -190,3 +190,47 @@ mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
   summary(mmfit)
   return(mmfit)
 }
+
+#The function nls_loop takes the processed initial rate data.
+#This function directs looping the mm_nls function, allowing the user to reprocess or exclude datapoints.
+#mm_nls, which is called by nls_loop, is responsible for actually doing the NLS and plotting the result.
+#nls_loop is responsible for calling calling regression_loop on selected data, excluded datapoints, and then calling mm_nls when ready.
+
+#nls_loop takes the initial rate data as an argument.  It must be in the standard format, with columns Dataset, Rate, Min Time, Max Time, and Exclude?
+#nls_loop returns the final NLS regression object.
+
+nls_loop <- function(initial_rates) {
+  #Perform the non-linear regression, and then allow the user to re-process.
+  while (TRUE) {
+    #Do the non-linear regression.
+    mm_fit <- mm_nls(initial_rates$Dataset, initial_rates$Rate, initial_rates$`Exclude?`)
+    print(initial_rates)
+    print(mm_fit)
+    #Provide a menu with all of the datasets.  Re-run the linear regression for those.
+    setnumber <- menu(c(initial_rates$Dataset, "Include/exclude datasets"), title = "Select a dataset to re-process (0 to quit):")
+    #If the number from the menu is 0, we're done.  Break out of the while loop.
+    if (setnumber == 0) {break}
+    #If the number from the menu is the highest value, switch to the exclude dataset mode.
+    if (setnumber == length(initial_rates$Dataset)+1) {
+      #Stay in include/exclude mode until the user chooses 0.
+      switchset <- 1
+      while (switchset != 0) {
+        #Get the set to toggle.
+        switchset <- menu(paste(initial_rates$Dataset, initial_rates$`Exclude?`, sep = ': '), title = "Select a dataset to toggle include/exclude state (0 to quit):")
+        #Toggle switchset.
+        initial_rates[switchset, 5] <- !initial_rates[switchset, 5]
+      }
+    } else {
+      #Otherwise, reprocess the selected datapoint.
+      #Print out the old data.
+      print(initial_rates[setnumber,])
+      #Re-do linear regression.
+      reg_results <- regression_loop(wt_data, colnames(wt_data[1]), colnames(wt_data[1+setnumber]), initial_rates[setnumber,3], initial_rates[setnumber,4])
+      #Replace the values in initial_rates.
+      initial_rates[setnumber,] <- data.frame(initial_rates[setnumber, 1], reg_results[[1]], reg_results[[3]], reg_results[[4]], initial_rates[setnumber, 5])
+    }
+  }
+  #Return updated initial rates and mm_fit
+  return(list(initial_rates, mm_fit))
+  #return(initial_rates)
+}
