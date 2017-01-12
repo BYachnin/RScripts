@@ -182,14 +182,10 @@ mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
   #The starting value for km is set to average concentraton in the dataset.
   #A maximum of 5000 iterations are allowed.
   mmfit = nls(incl_data[,2] ~ vmax * incl_data[,1]/(km + incl_data[,1]), start = list(vmax = max(abs(incl_data[,2]))*(max(abs(incl_data[,2]))/max(incl_data[,2])), km = mean(incl_data[,1])), control = c(maxiter = 5000))
-  #Set up points for nls function sampling with 300 points
-  nls_sample <- seq(min(incl_data[,1]), max(incl_data[,1]), length.out = 300)
   #Add the fitted curve to the plot.
-  #lines(incl_data[,1], predict(mmfit, nls_sample), col = 'Red')
-  #lines(nls_sample, predict(mmfit, nls_sample), col = 'Red')
-  #lines(sort(incl_data[,1]), predict(mmfit), col = 'Red')
   lines(incl_data[,1], predict(mmfit), col = 'Red')
-  #lines(nls_sample, predict(mmfit), col = 'Red')
+  #Plot the excluded data as blue Xs.
+  points(excl_data, col = 'blue', pch = 4)
   #Print out and return the regression data.
   summary(mmfit)
   return(mmfit)
