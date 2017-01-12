@@ -169,17 +169,28 @@ mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
   raw_data <- data.frame(concentration, rates, exclude)
   colnames(raw_data) <- c("concentration", "rates", "exclude")
   #Subset into excl_data and incl_data
-  incl_data <- subset(raw_data, exclude == FALSE)
+  #incl_data has to be a matrix for nls.
+  incl_data <- as.matrix(subset(raw_data, exclude == FALSE))
   excl_data <- subset(raw_data, exclude == TRUE)
+  #Sort incl_data for nls
+  incl_data <- incl_data[order(incl_data[,1]),]
   #Plot the raw data
-  plot(incl_data$concentration, incl_data$rates, main = "Michaelis-Menten Kinetics", xlab = "[Substrate]", ylab = "Initial Rate")
+  graphics.off()
+  plot(incl_data[,1], incl_data[,2], main = "Michaelis-Menten Kinetics", xlab = "[Substrate]", ylab = "Initial Rate")
   #Do the non-linear regression and store it in mmfit.
   #The starting value for vmax is set to the highest rate in the set.
   #The starting value for km is set to average concentraton in the dataset.
   #A maximum of 5000 iterations are allowed.
-  mmfit = nls(incl_data$rates ~ vmax * incl_data$concentration/(km + incl_data$concentration), start = list(vmax = max(incl_data$rates), km = mean(incl_data$concentration)), control = c(maxiter = 5000))
+  mmfit = nls(incl_data[,2] ~ vmax * incl_data[,1]/(km + incl_data[,1]), start = list(vmax = max(abs(incl_data[,2]))*(max(abs(incl_data[,2]))/max(incl_data[,2])), km = mean(incl_data[,1])), control = c(maxiter = 5000))
+  #Set up points for nls function sampling with 300 points
+  nls_sample <- seq(min(incl_data[,1]), max(incl_data[,1]), length.out = 300)
   #Add the fitted curve to the plot.
-  lines(incl_data$concentration, predict(mmfit), col = 'Red')
-  #Print out the regression data.
+  #lines(incl_data[,1], predict(mmfit, nls_sample), col = 'Red')
+  #lines(nls_sample, predict(mmfit, nls_sample), col = 'Red')
+  #lines(sort(incl_data[,1]), predict(mmfit), col = 'Red')
+  lines(incl_data[,1], predict(mmfit), col = 'Red')
+  #lines(nls_sample, predict(mmfit), col = 'Red')
+  #Print out and return the regression data.
   summary(mmfit)
+  return(mmfit)
 }

@@ -7,10 +7,10 @@ library(brahm)
 library(utils)
 source("mm_functions.R")
 
-infile <- ""
+infile <- "mm_out.csv"
 outfile <- "mm_out.csv"
 
-wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test2")
+wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test")
 
 #Set up a list of the dataset concentrations.
 subconcentrations <- colnames(wt_data[-1])
@@ -59,7 +59,7 @@ if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
     #Do the non-linear regression.
     mm_fit <- mm_nls(result_list$Dataset, result_list$Rate, result_list$`Exclude?`)
     print(result_list)
-    summary(mm_fit)
+    print(mm_fit)
     #Provide a menu with all of the datasets.  Re-run the linear regression for those.
     setnumber <- menu(c(result_list$Dataset, "Include/exclude datasets"), title = "Select a dataset to re-process (0 to quit):")
     #If the number from the menu is 0, we're done.  Break out of the while loop.
@@ -88,3 +88,5 @@ if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
 
 #Output the result_list to outfile.
 write.csv(result_list, file = outfile, row.names = FALSE)
+#Output final mm_fit
+print(mm_fit)
