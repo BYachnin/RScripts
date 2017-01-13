@@ -11,20 +11,22 @@ infile <- "mm_out.csv"
 #infile <- ""
 outfile <- "mm_out.csv"
 
-wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test")
+#wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test")
+wt_data <- read.xlsx("9-2-16WTIso_NH.xlsx", "Test", header = FALSE)
 
 #Set up a list of the dataset concentrations.
-subconcentrations <- colnames(wt_data[-1])
+#subconcentrations <- colnames(wt_data[-1])
+subconcentrations <- wt_data[1,-1]
 
 #Go through and remove the leading X and trailing .1 that R puts in.
-for (concidx in seq_len(length(subconcentrations))) {
-  if (substring(subconcentrations[concidx], 1, 1) == 'X') {
-    subconcentrations[concidx] <- substring(subconcentrations[concidx], 2)
-    if (grep('.', subconcentrations[concidx], value = FALSE)) {
-      subconcentrations[concidx] <- sub('\\..$', '', subconcentrations[concidx])
-    }
-  }
-}
+#for (concidx in seq_len(length(subconcentrations))) {
+  #if (substring(subconcentrations[concidx], 1, 1) == 'X') {
+    #subconcentrations[concidx] <- substring(subconcentrations[concidx], 2)
+    #if (grep('.', subconcentrations[concidx], value = FALSE)) {
+      #subconcentrations[concidx] <- sub('\\..$', '', subconcentrations[concidx])
+    #}
+  #}
+#}
 
 result_list <- data.frame()
 
@@ -32,11 +34,12 @@ result_list <- data.frame()
 if (infile == "") {
   for (dataset in colnames(wt_data[-1])) {
     reg_results <- regression_loop(wt_data, colnames(wt_data[1]), dataset)
-    if (is.numeric(dataset)) {
-      new_result <- data.frame(as.numeric(dataset), reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
-    } else {
-      new_result <- data.frame(dataset, reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
-    }
+    new_result <- data.frame(as.numeric(wt_data[1, dataset]), reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
+    #if (is.numeric(dataset)) {
+      #new_result <- data.frame(as.numeric(dataset), reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
+    #} else {
+      #new_result <- data.frame(dataset, reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
+    #}
     result_list <- rbind(result_list, new_result)
   } 
 } else {

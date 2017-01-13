@@ -90,12 +90,12 @@ make_reggraph <- function(fulldata, lowx, highx) {
 #This will continue until the user hits enter for both data limits.
 #At this point, the function will return the selected data limits and the regression object.
 regression_loop <-
-  function(kineticdata, timeheader, activityheader, startreg = min(as.numeric(kineticdata[, timeheader])), endreg = max(as.numeric(kineticdata[, timeheader]))) {
+  function(kineticdata, timeheader, activityheader, startreg = min(as.numeric(as.character(kineticdata[-1, timeheader]))), endreg = max(as.numeric(as.character(kineticdata[-1, timeheader])))) {
     #Going in, we will go through the loop.
     loop = TRUE
     
     #Convert the appropriate two columns into a data frame for linear regression.
-    regdata = data.frame(as.numeric(kineticdata[, timeheader]), as.numeric(kineticdata[, activityheader]))
+    regdata = data.frame(as.numeric(as.character(kineticdata[-1, timeheader])), as.numeric(as.character(kineticdata[-1, activityheader])))
     #Call those columns x and y
     colnames(regdata) <- c('x', 'y')
     
@@ -234,3 +234,25 @@ nls_loop <- function(initial_rates) {
   return(list(initial_rates, mm_fit))
   #return(initial_rates)
 }
+
+#mm_kinetics is a master function that does complete Michaelis-Menten kinetics analysis.
+#It takes as input a data frame, with the following specificatons:
+#1. The first row (should NOT be a header row) should contain numeric values for the substrate concentration for each dataset.
+#2. The first column should contain numberic values for the time data.
+#3. All subsequent columns should contain numeric values for substrate/product concentration at the timepoints listed in the first column.
+#4. The value of the top-left cell is ignored.
+#Optionally, mm_kinetics can take two filenames of CSV files containing result data: one for input and one for output.
+#If an input filename is provided, the result data is preloaded, rather than asking for the user to process all kinetic datasets.
+#If the same filename is used, the input file will be OVERWRITTEN with the new results.
+#The file should contain five columns with headers in the first row:
+#A. Dataset (should hold numeric substrate concentrations).
+#B. Rate (should contain the numeric calculated initial rate for that dataset).
+#C. Min.Time (should contain the numeric time value for the first datapoint used in linear regression to calculate Rate).
+#D. Max.Time (should contain the numeric time value for the last datapoint used in linear regression to calculate Rate).
+#E. Exclude. (should contain a boolean flag indicating whether to exclude that dataset during non-linear regression).
+#If used for input, the file containing the result data must correspond exactly to the raw data dataframe.
+#In practice, this means that mm_kinetics should be used to generate the result files.
+
+#As output, mm_kinetics returns the non-linear regression results, and also print those to the terminal.
+#It will also plot the results as a graph in a window.
+#Note that all results will be in the same units as the input data.
