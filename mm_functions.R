@@ -343,12 +343,12 @@ mm_kinetics <- function(raw_data, infile, outfile) {
   #If the substrate data series titles are not numeric, it will prompt to either quit or skip NLS.
   perform_nls <- mm_validation(raw_data, result_list)
   
-  #Move the numeric version of the dataset names (subconcentrations) into result_list$Dataset.
-  result_list$Dataset <- as.numeric(subconcentrations)
+  #If data validation passes and we have numeric substrate concentrations (ie. perform_nls is TRUE)
+  if (perform_nls) {
+    #Move the numeric version of the dataset names (subconcentrations) into result_list$Dataset.
+    result_list$Dataset <- as.numeric(subconcentrations)
   
-  #Call nls_loop() to do the non-linear regression in a loop.
-  #Check if the data frame is numeric to do non-linear regression
-  if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
+    #Call nls_loop() to do the non-linear regression in a loop.
     nls_loop_result <- nls_loop(result_list)
     #Extract the components into their own variables.
     result_list <- nls_loop_result[1]
