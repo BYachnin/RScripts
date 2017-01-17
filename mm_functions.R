@@ -235,6 +235,56 @@ nls_loop <- function(initial_rates) {
   #return(initial_rates)
 }
 
+#mm_validation checks the data for compatibility with the mm_kinetics requirements.
+#The raw_data is checked to be numeric.  If the first row (other than the first column) is not, warn that NLS is not possible.
+#If the second and higher rows are not numeric, quit with an error.
+#For the result_list data (if provided), it is checked to have the right header rows.  If not, quit with an error.
+#It is also checked to match up with the raw_data.  If not, quit with an error.
+#mm_validation returns the TRUE/FALSE value of whether to perform NLS on the data.  All other error conditions will quit.
+mm_validation <- function(raw_data, result_list = '') {
+  #Check if the non-header raw data is numeric.  If not, stop execution and output an error message.
+  #if (is.numeric(raw_data[,-1]) == FALSE) {
+  check.num <- function(X) { is.numeric(as.numeric(as.character(X))) }
+  check.nas <- function(X) { is.na(as.numeric(as.character(X))) }
+  if (!all(sapply(raw_data[-1,], check.num)) || any(sapply(raw_data[-1,], check.nas)) ) {
+    stop("The time data or substrate/product concentration data are not numeric.  Initial rate analysis cannot proceed.")
+  }
+  
+  #The following checks apply only if result_list is given.
+  if (result_list != '') {
+    #Check if the result_list data has the correct headers.  If not, stop execution and output an error message.
+    if (! identical(names(result_list), c("Dataset", "Rate", "Min Time", "Max Time", "Exclude?"))) {
+      stop("The Michaelis-Menten result list CSV file is in an incorrect format.\nIt should contain five column: Dataset, Rate, Min Time, Max Time, and Exclude?\nCheck the input file, or do not provide a result file to process all datasets and re-generate a properly formatted file.")
+    }
+  
+    #Check if the result_list data matches up with raw_data.  If not, stop execution and output an error message.
+    if (! identical(as.numeric(result_list$Dataset), as.numeric(raw_data[1,-1]))) {
+      stop("The raw data file and the results file substrate concentrations are incompatible.\nThe order and values of the substrate concentrations must match.\nEither fix order of the values, or do not provide a result file to process all datasets and re-generate a properly formatted file.")
+    }
+  
+    #Check if the result_list data are numeric/logical.  If not, stop execution and output an error message.
+    if (!all(sapply(result_list[,c(-1,-5)], check.num)) || any(sapply(result_list[,c(-1,-5)], check.nas))) {
+      stop("The result file columns Rate, Min Time, or Max Time are not numeric.  Cannot proceed.")
+    }
+  
+    if (! is.logical(as.logical(result_list[,5])) || any(is.na(as.logical(result_list[,5]))) ) {
+      stop("The result file column Exclude? is not TRUE/FALSE.  Cannot proceed.")
+    }
+  
+    #Check if the substrate concentrations are numeric.  If not, warn that NLS cannot proceed, prompt to continue.  Return the TRUE/FALSE result.
+    subnumeric <- (is.numeric(as.numeric(result_list$Dataset)) && !any(is.na(as.numeric(result_list$Dataset))))
+    if (! subnumeric) {
+      print("The substrate list is not numeric, so non-linear regression cannot be performed.")
+      continue <- menu(c("Yes", "No"), title = "Do you want to proceed?")
+      if (continue == 2) {stop("User requested termination.")}
+    }
+    return(subnumeric)
+  } else {
+  #If result_list is not given, return FALSE (ie. cannot proceed with NLS).
+    return(FALSE)
+  }
+}
+
 #mm_kinetics is a master function that does complete Michaelis-Menten kinetics analysis.
 #It takes as input a data frame, with the following specificatons:
 #1. The first row (should NOT be a header row) should contain numeric values for the substrate concentration for each dataset.
@@ -258,6 +308,9 @@ nls_loop <- function(initial_rates) {
 #Note that all results will be in the same units as the input data.
 
 mm_kinetics <- function(raw_data, infile, outfile) {
+  #Run a validation on the raw_data before doing anything else.
+  mm_validation(raw_data)
+  
   #Initialize a dataframe to hold the result data.
   result_list <- data.frame()
   
@@ -279,13 +332,16 @@ mm_kinetics <- function(raw_data, infile, outfile) {
   } else {
     #Read in the old result_list from the input file
     result_list <- read.csv(infile)
-    #Ensure that the headings in result_list and those derived from the raw data match up.
-    #Otherwise, the data are probably incompatible and we should quit.
-    if (! identical(as.numeric(result_list$Dataset), as.numeric(subconcentrations)))
-      stop("The raw data file and the results file are incompatible.")
+    
+    #This is where the validation used to be.
   }
   
   names(result_list) <- c("Dataset", "Rate", "Min Time", "Max Time", "Exclude?")
+  
+  #Validate the input data.
+  #The program will quit if the data are not able to be used for NLS, or if there is a mismatch between raw_data and result_list.
+  #If the substrate data series titles are not numeric, it will prompt to either quit or skip NLS.
+  perform_nls <- mm_validation(raw_data, result_list)
   
   #Move the numeric version of the dataset names (subconcentrations) into result_list$Dataset.
   result_list$Dataset <- as.numeric(subconcentrations)

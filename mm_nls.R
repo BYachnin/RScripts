@@ -24,4 +24,4 @@ wt_data <- read.xlsx("9-2-16WTIso_NH.xlsx", "Test", header = FALSE)
   #}
 #}
 
-mm_analysis <- mm_kinetics(wt_data, infile, outfile)
+#mm_analysis <- mm_kinetics(wt_data, infile, outfile)
