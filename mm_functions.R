@@ -46,15 +46,17 @@ make_reggraph <- function(fulldata, lowx, highx) {
   title(main = "Full dataset")
   
   #Add a thicker line for the selected region
-  lines(reg_subset, lwd=3, col=datacol)
+  lines(reg_subset, lwd = 3, col = datacol)
   
   #Add the linear regression line over the approriate range
-  ablineclip(regression,
-             col = "black",
-             x1 = lowx,
-             x2 = highx,
-             lwd=2)
-
+  ablineclip(
+    regression,
+    col = "black",
+    x1 = lowx,
+    x2 = highx,
+    lwd = 2
+  )
+  
   #Plot the zoomed-in data
   plot(
     fulldata$x,
@@ -69,14 +71,16 @@ make_reggraph <- function(fulldata, lowx, highx) {
   title(main = "Zoomed dataset")
   
   #Add a thicker line for the selected region
-  lines(reg_subset, lwd=3, col=datacol)
+  lines(reg_subset, lwd = 3, col = datacol)
   
   #Add the linear regression line over the approriate range
-  ablineclip(regression,
-             col = "black",
-             x1 = lowx,
-             x2 = highx,
-             lwd=2)
+  ablineclip(
+    regression,
+    col = "black",
+    x1 = lowx,
+    x2 = highx,
+    lwd = 2
+  )
   
   #Return the regression results.
   return(regression)
@@ -90,7 +94,11 @@ make_reggraph <- function(fulldata, lowx, highx) {
 #This will continue until the user hits enter for both data limits.
 #At this point, the function will return the selected data limits and the regression object.
 regression_loop <-
-  function(kineticdata, timeheader, activityheader, startreg = min(as.numeric(as.character(kineticdata[-1, timeheader]))), endreg = max(as.numeric(as.character(kineticdata[-1, timeheader])))) {
+  function(kineticdata,
+           timeheader,
+           activityheader,
+           startreg = min(as.numeric(as.character(kineticdata[-1, timeheader]))),
+           endreg = max(as.numeric(as.character(kineticdata[-1, timeheader])))) {
     #Going in, we will go through the loop.
     loop = TRUE
     
@@ -130,7 +138,8 @@ regression_loop <-
       
       #Subset the data to include only those x-values within the requested range.
       subregdata <-
-        subset(regdata, x >= as.numeric(startreg) & x <= as.numeric(endreg))
+        subset(regdata, x >= as.numeric(startreg) &
+                 x <= as.numeric(endreg))
       
       #The values entered by the user for startreg and endreg are probably not the true range.
       #Determine the actual min and max values, and replace startreg and endreg with those.
@@ -161,7 +170,7 @@ regression_loop <-
 
 #Pass concentration and rate data to this function.
 #Based on this data, calculate a best-fit using non-linear regression to the
-#Michaelis-Menten equation.  It will print the regression table, and 
+#Michaelis-Menten equation.  It will print the regression table, and
 #make a graph of the results.
 
 mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
@@ -173,17 +182,30 @@ mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
   incl_data <- as.matrix(subset(raw_data, exclude == FALSE))
   excl_data <- subset(raw_data, exclude == TRUE)
   #Sort incl_data for nls
-  incl_data <- incl_data[order(incl_data[,1]),]
+  incl_data <- incl_data[order(incl_data[, 1]), ]
   #Plot the raw data
   graphics.off()
-  plot(incl_data[,1], incl_data[,2], main = "Michaelis-Menten Kinetics", xlab = "[Substrate]", ylab = "Initial Rate")
+  plot(
+    incl_data[, 1],
+    incl_data[, 2],
+    main = "Michaelis-Menten Kinetics",
+    xlab = "[Substrate]",
+    ylab = "Initial Rate"
+  )
   #Do the non-linear regression and store it in mmfit.
   #The starting value for vmax is set to the highest rate in the set.
   #The starting value for km is set to average concentraton in the dataset.
   #A maximum of 5000 iterations are allowed.
-  mmfit = nls(incl_data[,2] ~ vmax * incl_data[,1]/(km + incl_data[,1]), start = list(vmax = max(abs(incl_data[,2]))*(max(abs(incl_data[,2]))/max(incl_data[,2])), km = mean(incl_data[,1])), control = c(maxiter = 5000))
+  mmfit = nls(
+    incl_data[, 2] ~ vmax * incl_data[, 1] / (km + incl_data[, 1]),
+    start = list(
+      vmax = max(abs(incl_data[, 2])) * (max(abs(incl_data[, 2])) / max(incl_data[, 2])),
+      km = mean(incl_data[, 1])
+    ),
+    control = c(maxiter = 5000)
+  )
   #Add the fitted curve to the plot.
-  lines(incl_data[,1], predict(mmfit), col = 'Red')
+  lines(incl_data[, 1], predict(mmfit), col = 'Red')
   #Plot the excluded data as blue Xs.
   points(excl_data, col = 'blue', pch = 4)
   #Print out and return the regression data.
@@ -203,36 +225,60 @@ nls_loop <- function(initial_rates) {
   #Perform the non-linear regression, and then allow the user to re-process.
   while (TRUE) {
     #Do the non-linear regression.
-    mm_fit <- mm_nls(initial_rates$Dataset, initial_rates$Rate, initial_rates$`Exclude?`)
+    mm_fit <-
+      mm_nls(initial_rates$Dataset,
+             initial_rates$Rate,
+             initial_rates$`Exclude?`)
     print(initial_rates)
     print(mm_fit)
     #Provide a menu with all of the datasets.  Re-run the linear regression for those.
-    setnumber <- menu(c(initial_rates$Dataset, "Include/exclude datasets"), title = "Select a dataset to re-process (0 to quit):")
+    setnumber <-
+      menu(c(initial_rates$Dataset, "Include/exclude datasets"),
+           title = "Select a dataset to re-process (0 to quit):")
     #If the number from the menu is 0, we're done.  Break out of the while loop.
-    if (setnumber == 0) {break}
+    if (setnumber == 0) {
+      break
+    }
     #If the number from the menu is the highest value, switch to the exclude dataset mode.
-    if (setnumber == length(initial_rates$Dataset)+1) {
+    if (setnumber == length(initial_rates$Dataset) + 1) {
       #Stay in include/exclude mode until the user chooses 0.
       switchset <- 1
       while (switchset != 0) {
         #Get the set to toggle.
-        switchset <- menu(paste(initial_rates$Dataset, initial_rates$`Exclude?`, sep = ': '), title = "Select a dataset to toggle include/exclude state (0 to quit):")
+        switchset <-
+          menu(paste(
+            initial_rates$Dataset,
+            initial_rates$`Exclude?`,
+            sep = ': '
+          ),
+          title = "Select a dataset to toggle include/exclude state (0 to quit):")
         #Toggle switchset.
         initial_rates[switchset, 5] <- !initial_rates[switchset, 5]
       }
     } else {
       #Otherwise, reprocess the selected datapoint.
       #Print out the old data.
-      print(initial_rates[setnumber,])
+      print(initial_rates[setnumber, ])
       #Re-do linear regression.
-      reg_results <- regression_loop(wt_data, colnames(wt_data[1]), colnames(wt_data[1+setnumber]), initial_rates[setnumber,3], initial_rates[setnumber,4])
+      reg_results <-
+        regression_loop(
+          wt_data,
+          colnames(wt_data[1]),
+          colnames(wt_data[1 + setnumber]),
+          initial_rates[setnumber, 3],
+          initial_rates[setnumber, 4]
+        )
       #Replace the values in initial_rates.
-      initial_rates[setnumber,] <- data.frame(initial_rates[setnumber, 1], reg_results[[1]], reg_results[[3]], reg_results[[4]], initial_rates[setnumber, 5])
+      initial_rates[setnumber, ] <-
+        data.frame(initial_rates[setnumber, 1],
+                   reg_results[[1]],
+                   reg_results[[3]],
+                   reg_results[[4]],
+                   initial_rates[setnumber, 5])
     }
   }
   #Return updated initial rates and mm_fit
   return(list(initial_rates, mm_fit))
-  #return(initial_rates)
 }
 
 #mm_validation checks the data for compatibility with the mm_kinetics requirements.
@@ -243,44 +289,65 @@ nls_loop <- function(initial_rates) {
 #mm_validation returns the TRUE/FALSE value of whether to perform NLS on the data.  All other error conditions will quit.
 mm_validation <- function(raw_data, result_list = '') {
   #Check if the non-header raw data is numeric.  If not, stop execution and output an error message.
-  #if (is.numeric(raw_data[,-1]) == FALSE) {
-  check.num <- function(X) { is.numeric(as.numeric(as.character(X))) }
-  check.nas <- function(X) { is.na(as.numeric(as.character(X))) }
-  if (!all(sapply(raw_data[-1,], check.num)) || any(sapply(raw_data[-1,], check.nas)) ) {
-    stop("The time data or substrate/product concentration data are not numeric.  Initial rate analysis cannot proceed.")
+  check.num <-
+    function(X) {
+      is.numeric(as.numeric(as.character(X)))
+    }
+  check.nas <- function(X) {
+    is.na(as.numeric(as.character(X)))
+  }
+  if (!all(sapply(raw_data[-1, ], check.num)) ||
+      any(sapply(raw_data[-1, ], check.nas))) {
+    stop(
+      "The time data or substrate/product concentration data are not numeric.  Initial rate analysis cannot proceed."
+    )
   }
   
   #The following checks apply only if result_list is given.
   if (!identical(result_list, '')) {
     #Check if the result_list data has the correct headers.  If not, stop execution and output an error message.
-    if (! identical(names(result_list), c("Dataset", "Rate", "Min Time", "Max Time", "Exclude?"))) {
-      stop("The Michaelis-Menten result list CSV file is in an incorrect format.\nIt should contain five column: Dataset, Rate, Min Time, Max Time, and Exclude?\nCheck the input file, or do not provide a result file to process all datasets and re-generate a properly formatted file.")
+    if (!identical(names(result_list),
+                   c("Dataset", "Rate", "Min Time", "Max Time", "Exclude?"))) {
+      stop(
+        "The Michaelis-Menten result list CSV file is in an incorrect format.\nIt should contain five column: Dataset, Rate, Min Time, Max Time, and Exclude?\nCheck the input file, or do not provide a result file to process all datasets and re-generate a properly formatted file."
+      )
     }
-  
+    
     #Check if the result_list data matches up with raw_data.  If not, stop execution and output an error message.
-    if (! identical(as.numeric(result_list$Dataset), as.numeric(raw_data[1,-1]))) {
-      stop("The raw data file and the results file substrate concentrations are incompatible.\nThe order and values of the substrate concentrations must match.\nEither fix order of the values, or do not provide a result file to process all datasets and re-generate a properly formatted file.")
+    if (!identical(as.numeric(result_list$Dataset), as.numeric(raw_data[1, -1]))) {
+      stop(
+        "The raw data file and the results file substrate concentrations are incompatible.\nThe order and values of the substrate concentrations must match.\nEither fix order of the values, or do not provide a result file to process all datasets and re-generate a properly formatted file."
+      )
     }
-  
+    
     #Check if the result_list data are numeric/logical.  If not, stop execution and output an error message.
-    if (!all(sapply(result_list[,c(-1,-5)], check.num)) || any(sapply(result_list[,c(-1,-5)], check.nas))) {
+    if (!all(sapply(result_list[, c(-1, -5)], check.num)) ||
+        any(sapply(result_list[, c(-1, -5)], check.nas))) {
       stop("The result file columns Rate, Min Time, or Max Time are not numeric.  Cannot proceed.")
     }
-  
-    if (! is.logical(as.logical(result_list[,5])) || any(is.na(as.logical(result_list[,5]))) ) {
+    
+    if (!is.logical(as.logical(result_list[, 5])) ||
+        any(is.na(as.logical(result_list[, 5])))) {
       stop("The result file column Exclude? is not TRUE/FALSE.  Cannot proceed.")
     }
-  
+    
     #Check if the substrate concentrations are numeric.  If not, warn that NLS cannot proceed, prompt to continue.  Return the TRUE/FALSE result.
-    subnumeric <- (is.numeric(as.numeric(result_list$Dataset)) && !any(is.na(as.numeric(result_list$Dataset))))
-    if (! subnumeric) {
+    subnumeric <-
+      (is.numeric(as.numeric(result_list$Dataset)) &&
+         !any(is.na(as.numeric(
+           result_list$Dataset
+         ))))
+    if (!subnumeric) {
       print("The substrate list is not numeric, so non-linear regression cannot be performed.")
-      continue <- menu(c("Yes", "No"), title = "Do you want to proceed?")
-      if (continue == 2) {stop("User requested termination.")}
+      continue <-
+        menu(c("Yes", "No"), title = "Do you want to proceed?")
+      if (continue == 2) {
+        stop("User requested termination.")
+      }
     }
     return(subnumeric)
   } else {
-  #If result_list is not given, return FALSE (ie. cannot proceed with NLS).
+    #If result_list is not given, return FALSE (ie. cannot proceed with NLS).
     return(FALSE)
   }
 }
@@ -315,28 +382,28 @@ mm_kinetics <- function(raw_data, infile, outfile) {
   result_list <- data.frame()
   
   #Set up a list of the dataset concentrations.
-  subconcentrations <- raw_data[1,-1]
+  subconcentrations <- raw_data[1, -1]
   
   #If infile is not given, run through all datasets first.  Otherwise, skip this and load the input data.
   if (infile == "") {
     for (dataset in colnames(raw_data[-1])) {
-      reg_results <- regression_loop(raw_data, colnames(raw_data[1]), dataset)
-      new_result <- data.frame(as.numeric(raw_data[1, dataset]), reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
-      #if (is.numeric(dataset)) {
-      #new_result <- data.frame(as.numeric(dataset), reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
-      #} else {
-      #new_result <- data.frame(dataset, reg_results[[1]], reg_results[[3]], reg_results[[4]], FALSE)
-      #}
+      reg_results <-
+        regression_loop(raw_data, colnames(raw_data[1]), dataset)
+      new_result <-
+        data.frame(as.numeric(raw_data[1, dataset]),
+                   reg_results[[1]],
+                   reg_results[[3]],
+                   reg_results[[4]],
+                   FALSE)
       result_list <- rbind(result_list, new_result)
-    } 
+    }
   } else {
     #Read in the old result_list from the input file
     result_list <- read.csv(infile)
-    
-    #This is where the validation used to be.
   }
   
-  names(result_list) <- c("Dataset", "Rate", "Min Time", "Max Time", "Exclude?")
+  names(result_list) <-
+    c("Dataset", "Rate", "Min Time", "Max Time", "Exclude?")
   
   #Validate the input data.
   #The program will quit if the data are not able to be used for NLS, or if there is a mismatch between raw_data and result_list.
@@ -347,7 +414,7 @@ mm_kinetics <- function(raw_data, infile, outfile) {
   if (perform_nls) {
     #Move the numeric version of the dataset names (subconcentrations) into result_list$Dataset.
     result_list$Dataset <- as.numeric(subconcentrations)
-  
+    
     #Call nls_loop() to do the non-linear regression in a loop.
     nls_loop_result <- nls_loop(result_list)
     #Extract the components into their own variables.
