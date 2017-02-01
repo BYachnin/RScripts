@@ -1,44 +1,27 @@
 #Initialize
-setwd("~/Google Drive/Data/CPG2/Activity Assays")
+setwd("~/Google Drive/scripts/R")
 closeAllConnections()
 rm(list = ls())
 library(xlsx)
-source("~/Google Drive/Scripts/R/mm_functions.R")
-source("~/Google Drive/scripts/R/io.R")
+library(brahm)
+library(utils)
+source("mm_functions.R")
 
-#Load the contents of the various sheets into variables and transpose.
-mtx <-
-  read_tecan("2016_07_09 - MTX and PAB-E Assay for CPG2 Circular Permutations.xlsx",
-             "MTX")
+infile <- "mm_out.csv"
+#infile <- ""
+outfile <- "mm_out.csv"
 
-#Do the linear regression loop.  Store the result in reg_results
-#reg_results <- regression_loop(mtx, "Time [s]", "MTX1-S2N")
+#wt_data <- read_spectramax("9-2-16WTIso_NH.xlsx", "Test")
+wt_data <- read.xlsx("9-2-16WTIso_NH.xlsx", "Test", header = FALSE)
 
-datalist <- c("MTX1-WT", "MTX1-S2N")
-result_list <- data.frame()
+#Go through and remove the leading X and trailing .1 that R puts in.
+#for (concidx in seq_len(length(subconcentrations))) {
+  #if (substring(subconcentrations[concidx], 1, 1) == 'X') {
+    #subconcentrations[concidx] <- substring(subconcentrations[concidx], 2)
+    #if (grep('.', subconcentrations[concidx], value = FALSE)) {
+      #subconcentrations[concidx] <- sub('\\..$', '', subconcentrations[concidx])
+    #}
+  #}
+#}
 
-for (dataset in datalist) {
-  reg_results <- regression_loop(mtx, "Time [s]", dataset)
-  if (is.numeric(dataset)) {
-    new_result <- data.frame(as.numeric(dataset), reg_results[[1]])
-  } else {
-    new_result <- data.frame(dataset, reg_results[[1]])
-  }
-  result_list <- rbind(result_list, new_result)
-}
-
-names(result_list) <- c("Dataset", "Rate")
-
-result_list$Dataset <- c(1, 3)
-
-#Check if the data frame is numeric to do non-linear regression
-if (is.numeric(result_list$Dataset) && is.numeric(result_list$Rate)) {
-  plot(result_list$Dataset, result_list$Rate)
-  conc = result_list$Dataset
-  rates = result_list$Rate
-  #mmfit = nls(result_list$Rate ~ vmax*result_list$Dataset/(km + result_list$Dataset), start = list(vmax = max(result_list$Rate, km = mean(result_list$Dataset))))
-  #mmfit = nls(rates ~ vmax * conc/(km + conc), start = list(vmax = max(result_list$Rate, km = mean(result_list$Dataset))))
-  mmfit = nls(rates ~ vmax * conc/(km + conc), start = list(vmax = max(rates), km = mean(conc)), control = c(maxiter = 5000))
-  #mmfit = nls(result_list$Rate ~ vmax * result_list$Dataset/(km + result_list$Dataset), start = list(vmax = -0.000130, km = 2))
-  summary(mmfit)
-}
+mm_analysis <- mm_kinetics(wt_data, infile, outfile)

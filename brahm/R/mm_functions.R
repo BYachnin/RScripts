@@ -160,3 +160,22 @@ regression_loop <-
       cur_result
     ))
   }
+
+#Pass concentration and rate data to this function.
+#Based on this data, calculate a best-fit using non-linear regression to the
+#Michaelis-Menten equation.  It will print the regression table, and 
+#make a graph of the results.
+
+mm_nls <- function(concentration, rates) {
+  #Plot the raw data
+  plot(concentration, rates, main = "Michaelis-Menten Kinetics", xlab = "[Substrate]", ylab = "Initial Rate")
+  #Do the non-linear regression and store it in mmfit.
+  #The starting value for vmax is set to the highest rate in the set.
+  #The starting value for km is set to average concentraton in the dataset.
+  #A maximum of 5000 iterations are allowed.
+  mmfit = nls(rates ~ vmax * concentration/(km + concentration), start = list(vmax = max(rates), km = mean(concentration)), control = c(maxiter = 5000))
+  #Add the fitted curve to the plot.
+  lines(concentration, predict(mmfit), col = 'Red')
+  #Print out the regression data.
+  summary(mmfit)
+}
