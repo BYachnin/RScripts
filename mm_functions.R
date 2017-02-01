@@ -251,7 +251,7 @@ mm_validation <- function(raw_data, result_list = '') {
   }
   
   #The following checks apply only if result_list is given.
-  if (result_list != '') {
+  if (!identical(result_list, '')) {
     #Check if the result_list data has the correct headers.  If not, stop execution and output an error message.
     if (! identical(names(result_list), c("Dataset", "Rate", "Min Time", "Max Time", "Exclude?"))) {
       stop("The Michaelis-Menten result list CSV file is in an incorrect format.\nIt should contain five column: Dataset, Rate, Min Time, Max Time, and Exclude?\nCheck the input file, or do not provide a result file to process all datasets and re-generate a properly formatted file.")
