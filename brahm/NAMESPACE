@@ -2,7 +2,6 @@
 
 export(mm_kinetics)
 export(mm_nls)
-export(nls_loop)
 export(read_rosetta_score)
 export(read_spectramax)
 export(read_tecan)

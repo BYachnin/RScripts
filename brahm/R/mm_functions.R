@@ -2,6 +2,7 @@
 #library(plotrix)
 
 #Function to calculate the regression, plot the data, and return the regression data
+#Do not export (internal only)
 make_reggraph <- function(fulldata, lowx, highx) {
   #Plot the data as 2x1 grid (traces, spectra)
   par(mfrow = c(1, 2))   #Side-by-side plots
@@ -86,13 +87,21 @@ make_reggraph <- function(fulldata, lowx, highx) {
   return(regression)
 }
 
-#Pass a data matrix and two columns to this function.
-#Optionally, include a time minimum and maximum that sets the regression limits on the first round.
-#(If those arguments are not set, first round of regression will cover the entire dataset.)
-#First, the data will be plotted with a regression line covering the whole dataset.
-#The user will then be prompted to enter alternate limits for the dataset.  The data will be re-plotted.
-#This will continue until the user hits enter for both data limits.
-#At this point, the function will return the selected data limits and the regression object.
+#' Calculate the slope of a single data series.
+#'
+#' This function calculates the slope for a single kinetic data series.
+#' The user will then be prompted to enter alternate x-limits for the dataset.  The data will be re-plotted with the new regression curve.
+#' If the user hits enter for either the minimum or maximum limit, the previous value will be used.
+#' When the user hits enter for both the minimum and maximum limit, the function will end.
+#'
+#' @param kineticdata A dataframe that contains one or more kinetic series.  The column names of the dataframe should be the name of each dataset.
+#' @param timeheader A string containing the column name of the time data for the kinetic series.
+#' @param activityheader A string containing the activity (or concentration) data for the kinetic series.
+#' @param startreg A numeric value indicating the smallest timepoint to be used in the first round of regression.  If omitted, the smallest timepoint is used.  If the timepoint is not present in the dataset, the smallest timepoint greater than \code{startreg} is used.
+#' @param endreg A numeric value indicating the largest timepoint to be used in the first round of regression.  If omitted, the largest timepoint is used.  If the timepoint is not present in the dataset, the largest timepoint smaller than \code{endreg} is used.
+
+#' @return A list object containing, from the final round of linear regression, (1) the slope, (2) the intercept, (3) the lower timepoint limit, (4) the higher timepoint limit, and (5) the complete regression object.
+#' @seealso \code{\link{lm}}
 #' @export
 regression_loop <-
   function(kineticdata,
@@ -173,6 +182,14 @@ regression_loop <-
 #Based on this data, calculate a best-fit using non-linear regression to the
 #Michaelis-Menten equation.  It will print the regression table, and
 #make a graph of the results.
+#' Performs a non-linear regression fit to the Michaelis-Menten equation and prints and graphs the results.
+#'
+#' @param concentration The substrate concentrations used in the non-linear regression.
+#' @param rates The rates corresponding to the substrate concentrations given in \code{concentration}.
+#' @param exclude An optional flag indicating that this datapoint should be excluded from the non-linear regression analysis.
+#'
+#' @return The non-linear regression object is returned.
+#' @seealso \code{\link{nls}}
 #' @export
 mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
   #Combine the data into a dataframe called raw_data
@@ -221,7 +238,8 @@ mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
 
 #nls_loop takes the initial rate data as an argument.  It must be in the standard format, with columns Dataset, Rate, Min Time, Max Time, and Exclude?
 #nls_loop returns the final NLS regression object.
-#' @export
+
+#Do not export.
 nls_loop <- function(raw_data, initial_rates) {
   #Perform the non-linear regression, and then allow the user to re-process.
   while (TRUE) {
@@ -288,6 +306,8 @@ nls_loop <- function(raw_data, initial_rates) {
 #For the result_list data (if provided), it is checked to have the right header rows.  If not, quit with an error.
 #It is also checked to match up with the raw_data.  If not, quit with an error.
 #mm_validation returns the TRUE/FALSE value of whether to perform NLS on the data.  All other error conditions will quit.
+
+#Do not export.
 mm_validation <- function(raw_data, result_list = '') {
   #Check if the non-header raw data is numeric.  If not, stop execution and output an error message.
   check.num <-
@@ -374,8 +394,24 @@ mm_validation <- function(raw_data, result_list = '') {
 #As output, mm_kinetics returns the non-linear regression results, and also print those to the terminal.
 #It will also plot the results as a graph in a window.
 #Note that all results will be in the same units as the input data.
+#' This is a master function that does complete Michaelis-Menten kinetics analysis.
+#'
+#' The raw data kinetic data, as a single table, is passed to the function.  Each data series is analyzed in sequence, allowing the user to select appropriate minimum and maximum limits for calculating the initial rate.
+#' Once all data series are analyzed, the Michaelis-Menten curve (rate vs. substrate concentration) is plotted and non-linear regression is performed.
+#' The user will then be prompted to reanalyze any of the kinetic series, or to exclude one or more series from analysis.
+#' Once the user is satisfied with the results, the function ends, printing and returning the non-linear regression object.
+#' If the optional \code{infile} string is given, a CSV file containing a previous set of results for \code{raw_data} is loaded.
+#' In this case, the initial analysis of the data series is skipped.
+#' If the optional \code{outfile} string is given, a CSV file is written containing the final results of the analysis.
+#' \code{infile} needs to be generated by \code{mm_kinetics} to be a valid result file.
+#'
+#' @param raw_data A data table containing time data in the leftmost column and activity data in the other columns.
+#' @param infile An optional filename of a CSV file containing the results of a previous mm_kinetics run.
+#' @param outfile An optional filename of a CSV file that will be written with the results of this mm_kinetics run, for future re-analysis.
+#'
+#' @return The nls object generated in the final round of non-linear regression.
 #' @export
-mm_kinetics <- function(raw_data, infile, outfile) {
+mm_kinetics <- function(raw_data, infile = "", outfile = "") {
   #Run a validation on the raw_data before doing anything else.
   mm_validation(raw_data)
 
@@ -424,7 +460,9 @@ mm_kinetics <- function(raw_data, infile, outfile) {
   }
 
   #Output the result_list to outfile.
-  write.csv(result_list, file = outfile, row.names = FALSE)
+  if (outfile != "") {
+    write.csv(result_list, file = outfile, row.names = FALSE)
+  }
   #Output final_mm
   print(final_mm)
   return(final_mm)
