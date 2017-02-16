@@ -1,5 +1,5 @@
 #Initialize library
-library(plotrix)
+#library(plotrix)
 
 #Function to calculate the regression, plot the data, and return the regression data
 make_reggraph <- function(fulldata, lowx, highx) {
@@ -7,7 +7,7 @@ make_reggraph <- function(fulldata, lowx, highx) {
   par(mfrow = c(1, 2))   #Side-by-side plots
   par(mar = c(5, 5, 2, 1))	#Margins
   datacol = "red"       #Graph data colour
-  
+
   #Add 10% extra space so that the a bit more of the data are plotted than is being used for fitting.
   width = abs(highx - lowx)
   graphlow = lowx - 0.1 * width
@@ -25,15 +25,15 @@ make_reggraph <- function(fulldata, lowx, highx) {
   widthy = highy - lowy
   graphlowy = lowy - 0.1 * widthy
   graphhighy = highy + 0.1 * widthy
-  
+
   #Subset the data
   reg_subset <-
     subset(fulldata, x >= as.numeric(lowx) & x <= as.numeric(highx))
-  
+
   #Calculate a linear regression on the entire subregdata range.
   regression <- lm(reg_subset$y ~ reg_subset$x)
   print(regression)
-  
+
   #Plot the data in full
   plot(
     fulldata$x,
@@ -44,19 +44,19 @@ make_reggraph <- function(fulldata, lowx, highx) {
     ylab = 'Activity'
   )
   title(main = "Full dataset")
-  
+
   #Add a thicker line for the selected region
   lines(reg_subset, lwd = 3, col = datacol)
-  
+
   #Add the linear regression line over the approriate range
-  ablineclip(
+  plotrix::ablineclip(
     regression,
     col = "black",
     x1 = lowx,
     x2 = highx,
     lwd = 2
   )
-  
+
   #Plot the zoomed-in data
   plot(
     fulldata$x,
@@ -69,19 +69,19 @@ make_reggraph <- function(fulldata, lowx, highx) {
     ylab = 'Activity'
   )
   title(main = "Zoomed dataset")
-  
+
   #Add a thicker line for the selected region
   lines(reg_subset, lwd = 3, col = datacol)
-  
+
   #Add the linear regression line over the approriate range
-  ablineclip(
+  plotrix::ablineclip(
     regression,
     col = "black",
     x1 = lowx,
     x2 = highx,
     lwd = 2
   )
-  
+
   #Return the regression results.
   return(regression)
 }
@@ -93,6 +93,7 @@ make_reggraph <- function(fulldata, lowx, highx) {
 #The user will then be prompted to enter alternate limits for the dataset.  The data will be re-plotted.
 #This will continue until the user hits enter for both data limits.
 #At this point, the function will return the selected data limits and the regression object.
+#' @export
 regression_loop <-
   function(kineticdata,
            timeheader,
@@ -101,16 +102,16 @@ regression_loop <-
            endreg = max(as.numeric(as.character(kineticdata[-1, timeheader])))) {
     #Going in, we will go through the loop.
     loop = TRUE
-    
+
     #Convert the appropriate two columns into a data frame for linear regression.
     regdata = data.frame(as.numeric(as.character(kineticdata[-1, timeheader])), as.numeric(as.character(kineticdata[-1, activityheader])))
     #Call those columns x and y
     colnames(regdata) <- c('x', 'y')
-    
+
     #Calculate the regression and plot the data.  Store the regression in cur_result
     cur_result <-
       make_reggraph(regdata, as.numeric(startreg), as.numeric(endreg))
-    
+
     while (loop) {
       #Save the old start and end points of the regression.
       oldstart <- startreg
@@ -120,41 +121,41 @@ regression_loop <-
         readline(paste("Enter minimum (", oldstart, "): ", sep = ""))
       endreg   <-
         readline(paste("Enter maximum (", oldend, "): ", sep = ""))
-      
+
       #If the user pressed enter for both limits, stop looping.
       if (startreg == "" & endreg == "") {
         loop = FALSE
       }
-      
+
       #If the user pressed enter for the start limit, use the old start limit
       if (startreg == "") {
         startreg = oldstart
       }
-      
+
       #If the user pressed enter for the end limit, use the old end limit
       if (endreg == "") {
         endreg = oldend
       }
-      
+
       #Subset the data to include only those x-values within the requested range.
       subregdata <-
         subset(regdata, x >= as.numeric(startreg) &
                  x <= as.numeric(endreg))
-      
+
       #The values entered by the user for startreg and endreg are probably not the true range.
       #Determine the actual min and max values, and replace startreg and endreg with those.
       #This will allow the user to see what the true start and end values are.
       startreg <- min(subregdata$x)
       endreg <- max(subregdata$x)
-      
+
       print(paste("Range: ", startreg, " - ", endreg, sep = ""))
-      
+
       #Do the linear regression with the selected start and end limits.  Store the regression in cur_result
       #cur_result <- make_reggraph(kineticdata, timeheader, activityheader, as.numeric(startreg), as.numeric(endreg))
       cur_result <-
         make_reggraph(regdata, as.numeric(startreg), as.numeric(endreg))
     }
-    
+
     #Now that the regression loop is finished, return the final regression results, as well as the start and end points
     print(paste("Final minimum: ", startreg, sep = ""))
     print(paste("Final maximum: ", endreg, sep = ""))
@@ -172,7 +173,7 @@ regression_loop <-
 #Based on this data, calculate a best-fit using non-linear regression to the
 #Michaelis-Menten equation.  It will print the regression table, and
 #make a graph of the results.
-
+#' @export
 mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
   #Combine the data into a dataframe called raw_data
   raw_data <- data.frame(concentration, rates, exclude)
@@ -213,15 +214,15 @@ mm_nls <- function(concentration, rates, exclude = c(FALSE)) {
   return(mmfit)
 }
 
-#The function nls_loop takes the processed initial rate data.
+#The function nls_loop takes the raw data and processed initial rate data.
 #This function directs looping the mm_nls function, allowing the user to reprocess or exclude datapoints.
 #mm_nls, which is called by nls_loop, is responsible for actually doing the NLS and plotting the result.
 #nls_loop is responsible for calling calling regression_loop on selected data, excluded datapoints, and then calling mm_nls when ready.
 
 #nls_loop takes the initial rate data as an argument.  It must be in the standard format, with columns Dataset, Rate, Min Time, Max Time, and Exclude?
 #nls_loop returns the final NLS regression object.
-
-nls_loop <- function(initial_rates) {
+#' @export
+nls_loop <- function(raw_data, initial_rates) {
   #Perform the non-linear regression, and then allow the user to re-process.
   while (TRUE) {
     #Do the non-linear regression.
@@ -262,9 +263,9 @@ nls_loop <- function(initial_rates) {
       #Re-do linear regression.
       reg_results <-
         regression_loop(
-          wt_data,
-          colnames(wt_data[1]),
-          colnames(wt_data[1 + setnumber]),
+          raw_data,
+          colnames(raw_data[1]),
+          colnames(raw_data[1 + setnumber]),
           initial_rates[setnumber, 3],
           initial_rates[setnumber, 4]
         )
@@ -302,7 +303,7 @@ mm_validation <- function(raw_data, result_list = '') {
       "The time data or substrate/product concentration data are not numeric.  Initial rate analysis cannot proceed."
     )
   }
-  
+
   #The following checks apply only if result_list is given.
   if (!identical(result_list, '')) {
     #Check if the result_list data has the correct headers.  If not, stop execution and output an error message.
@@ -312,25 +313,25 @@ mm_validation <- function(raw_data, result_list = '') {
         "The Michaelis-Menten result list CSV file is in an incorrect format.\nIt should contain five column: Dataset, Rate, Min Time, Max Time, and Exclude?\nCheck the input file, or do not provide a result file to process all datasets and re-generate a properly formatted file."
       )
     }
-    
+
     #Check if the result_list data matches up with raw_data.  If not, stop execution and output an error message.
     if (!identical(as.numeric(result_list$Dataset), as.numeric(raw_data[1, -1]))) {
       stop(
         "The raw data file and the results file substrate concentrations are incompatible.\nThe order and values of the substrate concentrations must match.\nEither fix order of the values, or do not provide a result file to process all datasets and re-generate a properly formatted file."
       )
     }
-    
+
     #Check if the result_list data are numeric/logical.  If not, stop execution and output an error message.
     if (!all(sapply(result_list[, c(-1, -5)], check.num)) ||
         any(sapply(result_list[, c(-1, -5)], check.nas))) {
       stop("The result file columns Rate, Min Time, or Max Time are not numeric.  Cannot proceed.")
     }
-    
+
     if (!is.logical(as.logical(result_list[, 5])) ||
         any(is.na(as.logical(result_list[, 5])))) {
       stop("The result file column Exclude? is not TRUE/FALSE.  Cannot proceed.")
     }
-    
+
     #Check if the substrate concentrations are numeric.  If not, warn that NLS cannot proceed, prompt to continue.  Return the TRUE/FALSE result.
     subnumeric <-
       (is.numeric(as.numeric(result_list$Dataset)) &&
@@ -373,17 +374,17 @@ mm_validation <- function(raw_data, result_list = '') {
 #As output, mm_kinetics returns the non-linear regression results, and also print those to the terminal.
 #It will also plot the results as a graph in a window.
 #Note that all results will be in the same units as the input data.
-
+#' @export
 mm_kinetics <- function(raw_data, infile, outfile) {
   #Run a validation on the raw_data before doing anything else.
   mm_validation(raw_data)
-  
+
   #Initialize a dataframe to hold the result data.
   result_list <- data.frame()
-  
+
   #Set up a list of the dataset concentrations.
   subconcentrations <- raw_data[1, -1]
-  
+
   #If infile is not given, run through all datasets first.  Otherwise, skip this and load the input data.
   if (infile == "") {
     for (dataset in colnames(raw_data[-1])) {
@@ -401,27 +402,27 @@ mm_kinetics <- function(raw_data, infile, outfile) {
     #Read in the old result_list from the input file
     result_list <- read.csv(infile)
   }
-  
+
   names(result_list) <-
     c("Dataset", "Rate", "Min Time", "Max Time", "Exclude?")
-  
+
   #Validate the input data.
   #The program will quit if the data are not able to be used for NLS, or if there is a mismatch between raw_data and result_list.
   #If the substrate data series titles are not numeric, it will prompt to either quit or skip NLS.
   perform_nls <- mm_validation(raw_data, result_list)
-  
+
   #If data validation passes and we have numeric substrate concentrations (ie. perform_nls is TRUE)
   if (perform_nls) {
     #Move the numeric version of the dataset names (subconcentrations) into result_list$Dataset.
     result_list$Dataset <- as.numeric(subconcentrations)
-    
+
     #Call nls_loop() to do the non-linear regression in a loop.
-    nls_loop_result <- nls_loop(result_list)
+    nls_loop_result <- nls_loop(raw_data, result_list)
     #Extract the components into their own variables.
     result_list <- nls_loop_result[1]
     final_mm <- nls_loop_result[2]
   }
-  
+
   #Output the result_list to outfile.
   write.csv(result_list, file = outfile, row.names = FALSE)
   #Output final_mm

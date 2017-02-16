@@ -1,26 +1,40 @@
 #Initialize library
-library(xlsx)
+#library(xlsx)
 
-#Function to load contents of Tecan sheets into variables and transpose.
+#' Loads the contents of Tecan-generated Excel sheets into a data frame.
+#'
+#' @param excelfile The name of the Excel file containing the sheet.
+#' @param excelsheet The name of the sheet in the Excel file containing your data.
+#' @return A data frame containing the Tecan data.
+#' @export
+#' @seealso \code{\link[xlsx]{read.xlsx}}
 read_tecan <- function(excelfile, excelsheet) {
   tecandata <-
-    t(read.xlsx((excelfile), sheetName = excelsheet, header = FALSE))
+    t(xlsx::read.xlsx((excelfile), sheetName = excelsheet, header = FALSE))
   #Make the header row the row name, and delete.
   colnames(tecandata) = tecandata[1,]
   tecandata = tecandata[-1,]
   return(tecandata)
 }
 
-#Function to load contents of Spectramax sheets into variables and transpose.
+#' Loads the contents of Tecan-generated Excel sheets into a data frame.
+#' @inherit read_tecan params seealso
+#' @return A data frame containing the Spectramax data.
+#' @export
 read_spectramax <- function(excelfile, excelsheet) {
   spectramaxdata <-
-    (read.xlsx((excelfile), sheetName = excelsheet))
+    (xlsx::read.xlsx((excelfile), sheetName = excelsheet))
   return(spectramaxdata)
 }
 
-#Function to load a Rosetta score file into a variable.
-#Remove the header row and the "SCORE:" leader string, and set the row names to description.
+#' Loads a Rosetta-style score file into a data frame.
+#'
+#' @param scorefile The path and filename of the Rosetta-style scorefile to load.
+#' @return A data frame object containing the data from the scorefile given in \code{scorefile}.
+#' @export
+#' @seealso \code{\link{read.table}}
 read_rosetta_score <- function(scorefile) {
+  #Remove the header row and the "SCORE:" leader string, and set the row names to description.
   rosettadata <-
     (read.table(scorefile, header = TRUE, skip = 1, row.names = "description"))
   rosettadata <- rosettadata[,-1]
