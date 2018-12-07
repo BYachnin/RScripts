@@ -4,7 +4,7 @@
 \alias{read_tecan}
 \title{Loads the contents of Tecan-generated Excel sheets into a data frame.}
 \usage{
-read_tecan(excelfile, excelsheet)
+read_tecan(excelfile, excelsheet, header = TRUE)
 }
 \arguments{
 \item{excelfile}{The name of the Excel file containing the sheet.}

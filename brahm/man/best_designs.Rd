@@ -4,8 +4,8 @@
 \alias{best_designs}
 \title{Return a list of the top designs in a Rosetta scorefile, based on a scoreterm of choice.}
 \usage{
-best_designs(datatable, scoreterm = "total_score", top = 1, number = 50,
-  descending = FALSE)
+best_designs(datatable, scoreterm = "total_score", top = 1,
+  number = 50, descending = FALSE)
 }
 \arguments{
 \item{datatable}{A table containing a Rosetta-style scorefile data.}

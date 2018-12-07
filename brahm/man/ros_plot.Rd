@@ -4,7 +4,8 @@
 \alias{ros_plot}
 \title{Plots a graph of two score terms from a score file.}
 \usage{
-ros_plot(datatable, xterm = "rmsd", yterm = "total_score", title = "")
+ros_plot(datatable, xterm = "rmsd", yterm = "total_score",
+  title = "")
 }
 \arguments{
 \item{datatable}{A table containing a Rosetta-style scorefile data.}

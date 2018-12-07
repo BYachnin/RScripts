@@ -1,11 +1,11 @@
 Package: brahm
 Type: Package
 Title: Brahm's Personal Function Library
-Version: 0.1.1-9005
+Version: 0.1.1-9006
 Author: Brahm Yachnin
 Maintainer: Brahm Yachnin <brahm.yachnin@rutgers.edu>
 Description: This has some function for dealing with Rosetta output and Michaelis-Menten kinetics.
 License: What license is it under?
 LazyData: TRUE
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Imports: xlsx, plotrix

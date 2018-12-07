@@ -7,7 +7,7 @@
 mm_kinetics(raw_data, infile = "", outfile = "")
 }
 \arguments{
-\item{raw_data}{A data table containing time data in the leftmost column and activity data in the other columns.}
+\item{raw_data}{A data table containing time data in the leftmost column and activity data in the other columns.  The top row should be the concentration series.  Row and column names are not used (i.e. time data should not be the row names, and concentration data should not be the column names).}
 
 \item{infile}{An optional filename of a CSV file containing the results of a previous mm_kinetics run.}
 
