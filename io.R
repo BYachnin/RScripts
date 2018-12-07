@@ -2,12 +2,14 @@
 library(xlsx)
 
 #Function to load contents of Tecan sheets into variables and transpose.
-read_tecan <- function(excelfile, excelsheet) {
+read_tecan <- function(excelfile, excelsheet, header = TRUE) {
   tecandata <-
     t(read.xlsx((excelfile), sheetName = excelsheet, header = FALSE))
-  #Make the header row the row name, and delete.
-  colnames(tecandata) = tecandata[1,]
-  tecandata = tecandata[-1,]
+  #If header is true, make the header row the row name, and delete.
+  if (header) {
+    colnames(tecandata) = tecandata[1,]
+    tecandata = tecandata[-1,]
+  }
   return(tecandata)
 }
 
